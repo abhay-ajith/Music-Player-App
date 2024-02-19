@@ -2,21 +2,26 @@ package com.example.musicplayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 
-public class PlayerActivity extends AppCompatActivity {
+public class PlayerActivity extends AppCompatActivity implements ActionPlaying, ServiceConnection {
 
     TextView song_name, artist_name, duration_Played, duration_Total;
     ImageView cover_art, nextBtn, prevBtn, backBtn, shuffleBtn, repeatBtn;
@@ -27,8 +32,8 @@ public class PlayerActivity extends AppCompatActivity {
     static Uri uri;
     static MediaPlayer mediaPlayer;
     private Handler handler;
-
     private Thread playThread, prevThread, nextThread;
+    MusicService musicService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,10 +91,18 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Intent intent = new Intent(this, MusicService.class);
+        bindService(intent, this, BIND_AUTO_CREATE);
         playThreadBtn();
         nextThreadBtn();
         prevThreadBtn();
         super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unbindService(this);
     }
 
     private void nextThreadBtn() {
@@ -108,7 +121,7 @@ public class PlayerActivity extends AppCompatActivity {
         nextThread.start();
     }
 
-    private void nextBtnClicked() {
+    public void nextBtnClicked() {
         if(mediaPlayer.isPlaying()){
 
             mediaPlayer.stop();
@@ -176,7 +189,7 @@ public class PlayerActivity extends AppCompatActivity {
         
     }
 
-    private void prevBtnClicked() {
+    public void prevBtnClicked() {
 
         if(mediaPlayer.isPlaying()){
 
@@ -245,7 +258,7 @@ public class PlayerActivity extends AppCompatActivity {
         
     }
 
-    private void playPauseBtnClicked() {
+    public void playPauseBtnClicked() {
         if (mediaPlayer.isPlaying()) {
             playPauseBtn.setImageResource(R.drawable.play);
             mediaPlayer.pause();
@@ -350,5 +363,18 @@ public class PlayerActivity extends AppCompatActivity {
                     .load(R.drawable.card)
                     .into(cover_art);
         }
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        MusicService.MyBinder myBinder = (MusicService.MyBinder) service;
+        musicService = myBinder.getService();
+        Toast.makeText(this,"Connected " + musicService,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        musicService = null;
+
     }
 }
