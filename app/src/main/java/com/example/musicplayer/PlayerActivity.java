@@ -73,18 +73,17 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
 
     // Method to update seek bar and duration text
     private void updateSeekBar() {
-        PlayerActivity.this.runOnUiThread(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mediaPlayer != null) {
-                    int mCurrentPosition = mediaPlayer.getCurrentPosition() / 1000;
+                if (musicService != null) {
+                    int mCurrentPosition = musicService.getCurrentPosition() / 1000;
                     seekBar.setProgress(mCurrentPosition);
                     duration_Played.setText(formattedTime(mCurrentPosition));
                 }
-                // Schedule the runnable to run again after 1 second
                 handler.postDelayed(this, 1000);
             }
-        });
+        }, 1000);
     }
 
     @Override
@@ -101,6 +100,8 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     protected void onPause() {
         super.onPause();
         unbindService(this);
+        // Remove the scheduled update of seek bar and duration text
+        handler.removeCallbacksAndMessages(null);
     }
 
     private void nextThreadBtn() {
@@ -370,12 +371,11 @@ public class PlayerActivity extends AppCompatActivity implements ActionPlaying, 
     public void onServiceConnected(ComponentName name, IBinder service) {
         MusicService.MyBinder myBinder = (MusicService.MyBinder) service;
         musicService = myBinder.getService();
-        Toast.makeText(this,"Connected " + musicService,Toast.LENGTH_SHORT).show();
-        seekBar.setMax(musicService.getDuration()/1000);
+        seekBar.setMax(musicService.getDuration() / 1000);
         metaData(uri);
         song_name.setText(listsongs.get(position).getTitile());
         artist_name.setText(listsongs.get(position).getArtist());
-        musicService.OnCompleted();
+        updateSeekBar();
     }
 
     @Override
