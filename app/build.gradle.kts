@@ -44,4 +44,12 @@ dependencies {
     //glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
+
+    implementation("androidx.room:room-runtime:2.6.1")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:2.6.1")
+
+    // optional - Testing Room databases using JUnit
+    testImplementation("androidx.room:room-testing:2.6.1")
 }
